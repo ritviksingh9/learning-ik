@@ -1,1 +1,1 @@
-# LearningIK
+# Learning Inverse Kinematics
