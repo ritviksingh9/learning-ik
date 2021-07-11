@@ -9,6 +9,7 @@ class DataGenConfig:
     ROBOT: str = "franka"
     ROBOT_URDF: str = "panda_arm.urdf"
     EE_NAME: str = "panda_link7"
+    JOINT_DIMS: int = 7
     # Config for the dataset
     OUT_FILE_NAME: str = "franka_ik_data.txt"
     IS_QUAT: bool = False
