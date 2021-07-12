@@ -2,7 +2,7 @@
 import pinocchio
 
 # data generating config
-from data_config import DataGenConfig
+from data import DataGenConfig
 
 # python
 import numpy as np

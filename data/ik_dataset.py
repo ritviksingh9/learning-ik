@@ -3,14 +3,14 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 
 # data generating config
-from data_config import DataGenConfig
+from data import DataGenConfig
 
 # python
 import numpy as np
 
 class IKDataset(Dataset):
     def __init__(self):
-        dataset = np.loadtxt(DataGenConfig.OUT_FILE_NAME, 
+        dataset = np.loadtxt("data/"+DataGenConfig.OUT_FILE_NAME, 
                         delimiter=",",
                         dtype = np.float32,
                         skiprows=1)
