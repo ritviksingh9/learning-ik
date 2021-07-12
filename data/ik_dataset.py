@@ -1,19 +1,24 @@
 # pytorch
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 
 # data generating config
 from data import DataGenConfig
+# from data_config import DataGenConfig
 
 # python
 import numpy as np
 
 class IKDataset(Dataset):
     def __init__(self):
-        dataset = np.loadtxt("data/"+DataGenConfig.OUT_FILE_NAME, 
+        dataset = np.loadtxt("data/" + DataGenConfig.OUT_FILE_NAME, 
                         delimiter=",",
                         dtype = np.float32,
                         skiprows=1)
+        # dataset = np.loadtxt(DataGenConfig.OUT_FILE_NAME, 
+        #                 delimiter=",",
+        #                 dtype = np.float32,
+        #                 skiprows=1)
 
         if DataGenConfig.IS_QUAT:
             pose = np.array([data[0:7] for data in dataset])

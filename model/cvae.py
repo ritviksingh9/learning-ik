@@ -13,8 +13,9 @@ CVAE_DEFAULT_CONFIG = {
     # dimension of hidden layer
     "hidden_dims": 50,
     # dimension of latent space
-    "latent_dims": 2
+    "latent_dims": 3
 }
+
 
 class CVAE(nn.Module):
     def __init__(self, config: Optional[dict] = None):
@@ -25,14 +26,11 @@ class CVAE(nn.Module):
             self._config.update(config)
         # encoder takes desired pose + joint configuration
         self.encoder = nn.Sequential(
-            nn.Linear(self._config["pose_dims"]+self._config["joint_dims"], self._config["hidden_dims"]),
+            nn.Linear(self._config["pose_dims"] + self._config["joint_dims"], self._config["hidden_dims"]),
             nn.ReLU(),
             nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
             nn.ReLU(),
-            nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
-            nn.ReLU(),
-            nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
-            nn.ReLU(),
+            
             nn.Linear(self._config["hidden_dims"], 2*self._config["latent_dims"])
         )
         # decoder takes latent space + desired pose
@@ -41,27 +39,26 @@ class CVAE(nn.Module):
             nn.ReLU(),
             nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
             nn.ReLU(),
-            nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
-            nn.ReLU(),
-            nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
-            nn.ReLU(),
+            
             nn.Linear(self._config["hidden_dims"], self._config["joint_dims"])
         )
 
     def forward(self, joint_config: torch.Tensor, desired_pose: torch.Tensor) -> Tuple[torch.Tensor]:
         # forward through encoder to get distribution params
-        latent_params = self.encoder(torch.cat((joint_config, desired_pose)))
+        latent_params = self.encoder(torch.cat((joint_config, desired_pose), axis=1).view(-1, self._config["pose_dims"] + self._config["joint_dims"]))
+
         # sample mean
-        mean = latent_params[0:self._config["latent_dims"]]
+        mean = latent_params[:, 0:self._config["latent_dims"]]
         # convert log of variance to standard deviation
-        log_variance = latent_params[self._config["latent_dims"]:]
+        log_variance = latent_params[:, self._config["latent_dims"]:]
         stddev = log_variance.mul(0.5).exp_()
         # noise sample from standard normal distribution
         std_norm_var = stddev.new_empty(stddev.size()).normal_()
         # reparameterization trick to sample from distribution
         z = std_norm_var.mul_(stddev).add_(mean)
         # run through decoder
-        return self.decoder(torch.cat((z, desired_pose))), mean, log_variance
+        return self.decoder(torch.cat((z, desired_pose), axis=1)), mean, log_variance
+
 
 # for testing purposes
 if __name__ == "__main__":

@@ -2,7 +2,8 @@
 import pinocchio
 
 # data generating config
-from data import DataGenConfig
+# from data import DataGenConfig
+from data_config import DataGenConfig
 
 # python
 import numpy as np
@@ -15,7 +16,7 @@ def gen_rand_config(lower_limit: np.ndarray, upper_limit: np.ndarray) -> np.ndar
 def generate_data():
     # model paths
     pinocchio_model_dir = dirname(dirname(str(abspath(__file__)))) 
-    model_path = pinocchio_model_dir + "/resources/"+DataGenConfig.ROBOT
+    model_path = pinocchio_model_dir + "/resources/" + DataGenConfig.ROBOT
     urdf_path = model_path + "/urdf/"+DataGenConfig.ROBOT_URDF
     # setup robot model and data
     model = pinocchio.buildModelFromUrdf(urdf_path)
@@ -40,9 +41,9 @@ def generate_data():
         pinocchio.framesForwardKinematics(model, data, config)
         pose = pinocchio.SE3ToXYZQUAT(data.oMf[ee_link_id])
         # converting quaternion to euler angle 
-        if DataGenConfig.IS_QUAT:
+        if DataGenConfig.IS_QUAT == False:
             rotation = R.from_quat(list(pose[3:]))
-            rotation_euler = rotation.as_euler("zxy")
+            rotation_euler = rotation.as_euler("xyz")
             pose = np.concatenate((pose[0:3],rotation_euler))
         # annoying string manipulation for saving in text file
         str_pose = [str(i) for i in pose]
@@ -51,6 +52,7 @@ def generate_data():
 
     # close file buffer
     file.close()
+
 
 if __name__ == "__main__":
     generate_data()
