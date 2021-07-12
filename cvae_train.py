@@ -8,9 +8,10 @@ from data import IKDataset
 
 # training hyperparameters
 BATCH_SIZE = 100
-NUM_EPOCHS = 80
-LEARNING_RATE = 1e-3
-LEARNING_RATE_DECAY = 3e-6
+NUM_EPOCHS = 120
+LEARNING_RATE = 3e-3
+LEARNING_RATE_DECAY = 0.99
+#LEARNING_RATE_DECAY = 3e-6
 
 def cvae_loss(joint_config: torch.Tensor, true_joint_config: torch.Tensor, 
               mean: torch.Tensor, log_variance: torch.Tensor, beta: float = 0.01) -> torch.Tensor:
@@ -19,7 +20,7 @@ def cvae_loss(joint_config: torch.Tensor, true_joint_config: torch.Tensor,
     return recon_loss + beta*kl_loss
 
 def train():
-    # device = torch.device("cpu")
+   # device = torch.device("cpu")
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     cvae = CVAE().to(device)
     cvae.train()
@@ -43,7 +44,8 @@ def train():
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        optimizer_scheduler.step()
+        if epoch > 50:
+            optimizer_scheduler.step()
         print("Epoch Number: {} || Average Error: {}".format(epoch, epoch_error/dataset.n_samples))
 
 

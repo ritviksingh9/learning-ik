@@ -30,7 +30,10 @@ class CVAE(nn.Module):
             nn.ReLU(),
             nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
             nn.ReLU(),
-            
+            nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
+            nn.ReLU(),
+            nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
+            nn.ReLU(),
             nn.Linear(self._config["hidden_dims"], 2*self._config["latent_dims"])
         )
         # decoder takes latent space + desired pose
@@ -39,7 +42,10 @@ class CVAE(nn.Module):
             nn.ReLU(),
             nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
             nn.ReLU(),
-            
+            nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
+            nn.ReLU(),
+            nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
+            nn.ReLU(),
             nn.Linear(self._config["hidden_dims"], self._config["joint_dims"])
         )
 
