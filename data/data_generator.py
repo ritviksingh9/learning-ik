@@ -46,6 +46,8 @@ def generate_data():
             rotation_euler = rotation.as_euler("xyz")
             pose = np.concatenate((pose[0:3],rotation_euler))
         # annoying string manipulation for saving in text file
+        # if we only care about a subset of the total chain
+        config = config[:DataGenConfig.JOINT_DIMS]
         str_pose = [str(i) for i in pose]
         str_config = [str(i) for i in config]
         file.write(",".join(str_pose) + "," + ",".join(str_config) + "\n")

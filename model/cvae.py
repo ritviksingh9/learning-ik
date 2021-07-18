@@ -7,11 +7,11 @@ from typing import Optional, Tuple
 
 CVAE_DEFAULT_CONFIG = {
     # 6 if euler angles, 7 if quaternion
-    "pose_dims": 6,
+    "pose_dims": 7,
     # number of actuated joints 
     "joint_dims": 7,
     # dimension of hidden layer
-    "hidden_dims": 50,
+    "hidden_dims": 100,
     # dimension of latent space
     "latent_dims": 3
 }
@@ -34,11 +34,19 @@ class CVAE(nn.Module):
             nn.ReLU(),
             nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
             nn.ReLU(),
+            nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
+            nn.ReLU(),
+            nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
+            nn.ReLU(),
             nn.Linear(self._config["hidden_dims"], 2*self._config["latent_dims"])
         )
         # decoder takes latent space + desired pose
         self.decoder = nn.Sequential(
             nn.Linear(self._config["latent_dims"]+self._config["pose_dims"], self._config["hidden_dims"]),
+            nn.ReLU(),
+            nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
+            nn.ReLU(),
+            nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
             nn.ReLU(),
             nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
             nn.ReLU(),
