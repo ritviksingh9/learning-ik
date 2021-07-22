@@ -4,10 +4,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 # differentiable-robot-model
-from differentiable_robot_model.robot_model import (
-    DifferentiableRobotModel,
-    DifferentiableKUKAiiwa,
-)
+from differentiable_robot_model.robot_model import DifferentiableRobotModel
 
 from model import CVAE
 from data import IKDataset 
@@ -44,10 +41,14 @@ def train():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     cvae = CVAE().to(device)
     cvae.train()
+
     # generate dataset
+    print("--------------Loading Data--------------")
     dataset = IKDataset()
     # shuffle=False because each data point is already randomly sampled
     train_loader = DataLoader(dataset=dataset, batch_size=BATCH_SIZE, shuffle=False)
+    print("--------------Data  Loaded--------------\n")
+
     # optimizer
     optimizer = torch.optim.Adam(cvae.parameters(), lr=LEARNING_RATE)
     optimizer_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=LEARNING_RATE_DECAY)
@@ -56,10 +57,11 @@ def train():
     # setup differentiable robot model stuff
     urdf_path = "resources/franka/urdf/panda_arm.urdf"
     robot_model = DifferentiableRobotModel(
-        urdf_path, name="franka_panda", device="cpu"
+        urdf_path, name="franka_panda", device=device
     )
 
     # training loop
+    print("----------------Training----------------")
     for epoch in range(NUM_EPOCHS):
         epoch_error = 0
         for pose, joint_config in train_loader:
@@ -77,9 +79,10 @@ def train():
         if epoch > 25:
             optimizer_scheduler.step()
         print("Epoch Number: {} || Average Error: {}".format(epoch, epoch_error/dataset.n_samples))
+    print("-----------Training  Completed-----------")
 
-    # save model
-    torch.save(cvae.state_dict(), "cvae_weights_cursed.pth")
+    # save the weights
+    torch.save(cvae.state_dict(), "model/weights/cvae_weights_2.pth")
 
 if __name__ == "__main__":
     train()
