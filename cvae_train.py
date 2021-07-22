@@ -10,7 +10,7 @@ from model import CVAE, ConstrainedCVAE
 from data import IKDataset 
 
 # training hyperparameters
-BATCH_SIZE = 32
+BATCH_SIZE = 25
 NUM_EPOCHS = 120
 LEARNING_RATE = 1e-4
 MOMENTUM = 0.95
@@ -36,7 +36,8 @@ def cvae_loss(joint_config: torch.Tensor, true_joint_config: torch.Tensor,
     return recon_loss + beta*kl_loss
 
 def train(constrained: bool = False):
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cpu")
+    # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     cvae = CVAE().to(device) if constrained == False else ConstrainedCVAE().to(device)
     cvae.train()
 
@@ -55,7 +56,7 @@ def train(constrained: bool = False):
     # setup differentiable robot model stuff
     urdf_path = "resources/franka/urdf/panda_arm.urdf"
     robot_model = DifferentiableRobotModel(
-        urdf_path, name="franka_panda", device=device
+        urdf_path, name="franka_panda", device=str(device)
     )
 
     # training loop
@@ -86,4 +87,4 @@ def train(constrained: bool = False):
         torch.save(cvae.state_dict(), "model/weights/cvae_weights_2.pth")
 
 if __name__ == "__main__":
-    train(constrained=True)
+    train(constrained=False)
