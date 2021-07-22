@@ -1,0 +1,3 @@
+[submodule "differentiable-robot-model"]
+	path = differentiable-robot-model
+	url = git@github.com:facebookresearch/differentiable-robot-model.git
