@@ -11,7 +11,7 @@ CVAE_DEFAULT_CONFIG = {
     # number of actuated joints 
     "joint_dims": 7,
     # dimension of hidden layer
-    "hidden_dims": 100,
+    "hidden_dims": 150,
     # dimension of latent space
     "latent_dims": 3
 }

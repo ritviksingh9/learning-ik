@@ -15,9 +15,9 @@ from data import IKDataset
 # training hyperparameters
 BATCH_SIZE = 25
 NUM_EPOCHS = 120
-LEARNING_RATE = 3e-3
+LEARNING_RATE = 1e-5
 MOMENTUM = 0.95
-LEARNING_RATE_DECAY = 0.99999
+LEARNING_RATE_DECAY = 0.99
 #LEARNING_RATE_DECAY = 3e-6
 
 def cvae_fk_loss(joint_config: torch.Tensor, true_pose: torch.Tensor,
@@ -74,10 +74,12 @@ def train():
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        if epoch > 20:
+        if epoch > 25:
             optimizer_scheduler.step()
         print("Epoch Number: {} || Average Error: {}".format(epoch, epoch_error/dataset.n_samples))
 
+    # save model
+    torch.save(cvae.state_dict(), "cvae_weights_cursed.pth")
 
 if __name__ == "__main__":
     train()
