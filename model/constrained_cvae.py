@@ -13,11 +13,15 @@ CVAE_DEFAULT_CONFIG = {
     # dimension of hidden layer
     "hidden_dims": 150,
     # dimension of latent space
-    "latent_dims": 3
+    "latent_dims": 3,
+    # lower joint position limits
+    "lower_joint_limits": torch.Tensor([-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973]),
+    # upper joint position limits
+    "upper_joint_limits": torch.Tensor([ 2.8973,  1.7628,  2.8973, -0.0698,  2.8973,  3.7525,  2.8973]),
 }
 
 
-class CVAE(nn.Module):
+class ConstrainedCVAE(nn.Module):
     def __init__(self, config: Optional[dict] = None):
         super().__init__()
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -25,6 +29,11 @@ class CVAE(nn.Module):
         self._config = CVAE_DEFAULT_CONFIG
         if config is not None:
             self._config.update(config)
+        # joint position range:
+        self._joint_position_range = (self._config["upper_joint_limits"] - self._config["lower_joint_limits"]).to(self.device)
+        # joint position mean:
+        self._joint_position_mean = 0.5*(self._config["upper_joint_limits"] + self._config["lower_joint_limits"]).to(self.device)
+
         # encoder takes desired pose + joint configuration
         self.encoder = nn.Sequential(
             nn.Linear(self._config["pose_dims"] + self._config["joint_dims"], self._config["hidden_dims"]),
@@ -55,8 +64,8 @@ class CVAE(nn.Module):
             nn.ReLU(),
             nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
             nn.ReLU(),
-            nn.Linear(self._config["hidden_dims"], self._config["joint_dims"])
-
+            nn.Linear(self._config["hidden_dims"], self._config["joint_dims"]),
+            nn.Tanh()
         )
 
     def forward(self, desired_pose: torch.Tensor, joint_config: Optional[torch.Tensor] = None, z: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor]:
@@ -73,7 +82,10 @@ class CVAE(nn.Module):
             # reparameterization trick to sample from distribution
             z = std_norm_var.mul_(stddev).add_(mean)
             # run through decoder
-            return self.decoder(torch.cat((z, desired_pose), axis=1)), mean, log_variance
+            output = self.decoder(torch.cat((z, desired_pose), axis=1))
+            # scale the output to meet joint position constraints
+            q = output*0.5*self._joint_position_range + self._joint_position_mean
+            return q, mean, log_variance
         else:
             # if z is not provided, sample from standard normal
             if z == None:
@@ -81,7 +93,9 @@ class CVAE(nn.Module):
                 print("sampled z: ", z)
             z = z.to(self.device)
             # run through decoder
-            return self.decoder(torch.cat((z, desired_pose), axis=0))
+            output = self.decoder(torch.cat((z, desired_pose), axis=0))
+            # scale the output to meet joint position constraints
+            q = output*0.5*self._joint_position_range + self._joint_position_mean
 
 
 # for testing purposes

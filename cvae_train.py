@@ -6,13 +6,13 @@ from torch.utils.data import DataLoader
 # differentiable-robot-model
 from differentiable_robot_model.robot_model import DifferentiableRobotModel
 
-from model import CVAE
+from model import CVAE, ConstrainedCVAE
 from data import IKDataset 
 
 # training hyperparameters
-BATCH_SIZE = 25
+BATCH_SIZE = 32
 NUM_EPOCHS = 120
-LEARNING_RATE = 1e-5
+LEARNING_RATE = 1e-4
 MOMENTUM = 0.95
 LEARNING_RATE_DECAY = 0.99
 #LEARNING_RATE_DECAY = 3e-6
@@ -20,8 +20,7 @@ LEARNING_RATE_DECAY = 0.99
 def cvae_fk_loss(joint_config: torch.Tensor, true_pose: torch.Tensor,
                  mean: torch.Tensor, log_variance: torch.Tensor, 
                  robot_model: DifferentiableRobotModel, beta: float = 0.02) -> torch.Tensor:
-    pose = torch.cat(robot_model.compute_forward_kinematics(joint_config, 
-                                                                "panda_link7"), axis=1)
+    pose = torch.cat(robot_model.compute_forward_kinematics(joint_config, "panda_link7"), axis=1)
     # reconstruction loss in task space
     recon_loss = nn.functional.mse_loss(true_pose, pose, reduction="sum")
     kl_loss = 0.5 * torch.sum(log_variance.exp() + mean.pow(2) - 1. - log_variance)
@@ -36,10 +35,9 @@ def cvae_loss(joint_config: torch.Tensor, true_joint_config: torch.Tensor,
     kl_loss = 0.5 * torch.sum(log_variance.exp() + mean.pow(2) - 1. - log_variance)
     return recon_loss + beta*kl_loss
 
-def train():
-    # device = torch.device("cpu")
+def train(constrained: bool = False):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    cvae = CVAE().to(device)
+    cvae = CVAE().to(device) if constrained == False else ConstrainedCVAE().to(device)
     cvae.train()
 
     # generate dataset
@@ -82,7 +80,10 @@ def train():
     print("-----------Training  Completed-----------")
 
     # save the weights
-    torch.save(cvae.state_dict(), "model/weights/cvae_weights_2.pth")
+    if constrained:
+        torch.save(cvae.state_dict(), "model/weights/constrained_cvae_weights.pth")
+    else:
+        torch.save(cvae.state_dict(), "model/weights/cvae_weights_2.pth")
 
 if __name__ == "__main__":
-    train()
+    train(constrained=True)

@@ -7,16 +7,19 @@ from torch import nn
 import numpy as np
 from os.path import dirname, abspath, join
 
-from model import CVAE
+from model import CVAE, ConstrainedCVAE
 
 
 
 
-def inference(pose, z = None):
-    # device = torch.device("cpu")
+def inference(pose, z = None, constrained = False):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    cvae = CVAE().to(device)
-    cvae.load_state_dict(torch.load("model/weights/cvae_weights.pth", map_location=device))
+    if constrained:
+        cvae = ConstrainedCVAE().to(device)
+        cvae.load_state_dict(torch.load("model/weights/constrained_cvae_weights.pth", map_location=device))
+    else:
+        cvae = CVAE().to(device)
+        cvae.load_state_dict(torch.load("model/weights/cvae_weights.pth", map_location=device))
     cvae.eval()
 
     with torch.no_grad():
@@ -31,7 +34,7 @@ if __name__ == "__main__":
 
     z = None
     #z = torch.Tensor([0, 0, 0])
-    q = inference(pose, z)
+    q = inference(pose=pose, z=z, constrained=False)
 
     print("Generated q: ", q)
 
@@ -54,3 +57,7 @@ if __name__ == "__main__":
     print("Desired Pose", pose[:3].cpu().numpy())
     print("Generated Pose: ", desired_pose[:3])
     print("Error: ", np.linalg.norm(pose[:3].cpu().numpy() - desired_pose[:3]))
+
+
+    print(lower_limit)
+    print(upper_limit)
