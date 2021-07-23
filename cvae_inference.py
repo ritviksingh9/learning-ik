@@ -30,11 +30,14 @@ def inference(pose, z = None, constrained = False):
 
 
 if __name__ == "__main__":
-    pose = torch.Tensor([-0.3622564536646905,0.07453657615711093,0.523455111826844,0.6949510146762841,0.6371909076037253,-0.28704989069534576,-0.16921345903719948])
+    # pose = torch.Tensor([-0.3622564536646905,0.07453657615711093,0.523455111826844,0.6949510146762841,0.6371909076037253,-0.28704989069534576,-0.16921345903719948])
+    pose = torch.Tensor([0.5, 0, 0.5, 0, 0, 0, 1])
+    
+
 
     z = None
     #z = torch.Tensor([0, 0, 0])
-    q = inference(pose=pose, z=z, constrained=False)
+    q = inference(pose=pose, z=z, constrained=True)
 
     print("Generated q: ", q)
 
@@ -59,5 +62,20 @@ if __name__ == "__main__":
     print("Error: ", np.linalg.norm(pose[:3].cpu().numpy() - desired_pose[:3]))
 
 
-    print(lower_limit)
-    print(upper_limit)
+
+
+
+
+    print("------------------------------------------------------\n")
+
+    for i in range (10):
+        z = torch.Tensor([0.2*i, 0*0.2*i, 0*0.2*i])
+        q = inference(pose=pose, z=z, constrained=True)
+        pinocchio.framesForwardKinematics(model, data, q.cpu().numpy())
+        desired_pose = pinocchio.SE3ToXYZQUAT(data.oMf[ee_link_id])
+        print(list(q.cpu().numpy()))
+        # print("Desired Pose", pose[:3].cpu().numpy())
+        # print("Generated Pose: ", desired_pose[:3])
+        # print("Error: ", np.linalg.norm(pose[:3].cpu().numpy() - desired_pose[:3]))
+        # print("\n")
+

@@ -36,8 +36,8 @@ def cvae_loss(joint_config: torch.Tensor, true_joint_config: torch.Tensor,
     return recon_loss + beta*kl_loss
 
 def train(constrained: bool = False):
-    device = torch.device("cpu")
-    # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    # device = torch.device("cpu")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     cvae = CVAE().to(device) if constrained == False else ConstrainedCVAE().to(device)
     cvae.train()
 
@@ -66,8 +66,8 @@ def train(constrained: bool = False):
         for pose, joint_config in train_loader:
             pose = pose.to(device)
             joint_config = joint_config.to(device)
-            joint_config_pred, mean, log_variance = cvae(joint_config, pose)
-            #loss = cvae_loss(joint_config_pred, joint_config,
+            joint_config_pred, mean, log_variance = cvae(pose, joint_config)
+            # loss = cvae_loss(joint_config_pred, joint_config,
             #                    mean, log_variance, beta)
             loss = cvae_fk_loss(joint_config_pred, pose, 
                                 mean, log_variance, robot_model, beta)
@@ -87,4 +87,4 @@ def train(constrained: bool = False):
         torch.save(cvae.state_dict(), "model/weights/cvae_weights_2.pth")
 
 if __name__ == "__main__":
-    train(constrained=False)
+    train(constrained=True)

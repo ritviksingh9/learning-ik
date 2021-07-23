@@ -56,7 +56,6 @@ class CVAE(nn.Module):
             nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
             nn.ReLU(),
             nn.Linear(self._config["hidden_dims"], self._config["joint_dims"])
-
         )
 
     def forward(self, desired_pose: torch.Tensor, joint_config: Optional[torch.Tensor] = None, z: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor]:
@@ -74,6 +73,7 @@ class CVAE(nn.Module):
             z = std_norm_var.mul_(stddev).add_(mean)
             # run through decoder
             return self.decoder(torch.cat((z, desired_pose), axis=1)), mean, log_variance
+
         else:
             # if z is not provided, sample from standard normal
             if z == None:

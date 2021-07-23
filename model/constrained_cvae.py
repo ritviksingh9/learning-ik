@@ -90,12 +90,13 @@ class ConstrainedCVAE(nn.Module):
             # if z is not provided, sample from standard normal
             if z == None:
                 z = torch.empty(self._config["latent_dims"]).normal_(mean=0, std=1)
-                print("sampled z: ", z)
+                # print("sampled z: ", z)
             z = z.to(self.device)
             # run through decoder
             output = self.decoder(torch.cat((z, desired_pose), axis=0))
             # scale the output to meet joint position constraints
             q = output*0.5*self._joint_position_range + self._joint_position_mean
+            return q
 
 
 # for testing purposes
