@@ -17,7 +17,7 @@ python setup.py develop
   - [Pinocchio](https://stack-of-tasks.github.io/pinocchio/): Provides URDF parser and forward kinematics functions
 
 
-## TODO
+## TO-DO
 - Increase the beta value of the KL divergence term in the cost function to further regularize the latent space
 - Extend this conditional VAE to other kinematically-redundant robots (e.g. KUKA IIWA 7)
 
