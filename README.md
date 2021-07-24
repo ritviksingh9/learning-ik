@@ -1,5 +1,7 @@
 # Learning Inverse Kinematics
 
+This implements a conditional VAE for the purpose of learning inverse kinematics for a 7 DOF Franka Panda robotic arm. Since a 7 DOF robotic arm has one degree of redundancy, there are generally multiple solutions for one given desired end-effector pose. However, traditional optimization based inverse kinematics algorithms, such as CLIK, can only yield one solution. The idea behind using a conditional VAE is that multiple inverse kinematics solutions may be acquired via traversing the latent space. With multiple solutions generated, one can then select the "best" one, where the definiton of "best" depends on the given situation (e.g. a solution that avoids collisions with obstacles or a solution that demands the least amount of actuation in the joint space).
+
 ## Setup Instructions
 * Clone the repository
 ```
@@ -10,3 +12,9 @@ git clone --recurse-submodules https://github.com/ritviksingh9/learning-ik.git
 cd differentiable-robot-model
 python setup.py develop
 ```
+
+## TODO
+- Increase the beta value of the KL divergence term in the cost function to further regularize the latent space
+- Extend this conditional VAE to other kinematically-redundant robots (e.g. KUKA IIWA 7)
+
+
