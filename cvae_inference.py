@@ -7,19 +7,16 @@ from torch import nn
 import numpy as np
 from os.path import dirname, abspath, join
 
-from model import CVAE, ConstrainedCVAE
+from model import ConstrainedCVAE
 
 
 
 
-def inference(pose, z = None, constrained = False):
+def inference(pose, z = None):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    if constrained:
-        cvae = ConstrainedCVAE().to(device)
-        cvae.load_state_dict(torch.load("model/weights/constrained_cvae_weights.pth", map_location=device))
-    else:
-        cvae = CVAE().to(device)
-        cvae.load_state_dict(torch.load("model/weights/cvae_weights.pth", map_location=device))
+    cvae = ConstrainedCVAE().to(device)
+    cvae.load_state_dict(torch.load("model/weights/constrained_cvae_weights.pth", map_location=device))
+
     cvae.eval()
 
     with torch.no_grad():
@@ -37,7 +34,7 @@ if __name__ == "__main__":
 
     z = None
     #z = torch.Tensor([0, 0, 0])
-    q = inference(pose=pose, z=z, constrained=True)
+    q = inference(pose=pose, z=z)
 
     print("Generated q: ", q)
 
@@ -69,13 +66,13 @@ if __name__ == "__main__":
     print("------------------------------------------------------\n")
 
     for i in range (10):
-        z = torch.Tensor([0.2*i, 0*0.2*i, 0*0.2*i])
-        q = inference(pose=pose, z=z, constrained=True)
+        z = torch.Tensor([2*i-1])
+        q = inference(pose=pose, z=z)
         pinocchio.framesForwardKinematics(model, data, q.cpu().numpy())
         desired_pose = pinocchio.SE3ToXYZQUAT(data.oMf[ee_link_id])
         print(list(q.cpu().numpy()))
-        # print("Desired Pose", pose[:3].cpu().numpy())
-        # print("Generated Pose: ", desired_pose[:3])
-        # print("Error: ", np.linalg.norm(pose[:3].cpu().numpy() - desired_pose[:3]))
-        # print("\n")
+        print("Desired Pose", pose[:3].cpu().numpy())
+        print("Generated Pose: ", desired_pose[:3])
+        print("Error: ", np.linalg.norm(pose[:3].cpu().numpy() - desired_pose[:3]))
+        print("\n")
 

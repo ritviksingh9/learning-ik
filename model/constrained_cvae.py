@@ -13,7 +13,7 @@ CVAE_DEFAULT_CONFIG = {
     # dimension of hidden layer
     "hidden_dims": 150,
     # dimension of latent space
-    "latent_dims": 3,
+    "latent_dims": 1,
     # lower joint position limits
     "lower_joint_limits": torch.Tensor([-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973]),
     # upper joint position limits
