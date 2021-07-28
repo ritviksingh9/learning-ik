@@ -11,7 +11,7 @@ CVAE_DEFAULT_CONFIG = {
     # number of actuated joints 
     "joint_dims": 7,
     # dimension of hidden layer
-    "hidden_dims": 150,
+    "hidden_dims": 200,
     # dimension of latent space
     "latent_dims": 1,
     # lower joint position limits
@@ -46,8 +46,8 @@ class ConstrainedCVAE(nn.Module):
             nn.ReLU(),
             nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
             nn.ReLU(),
-            nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
-            nn.ReLU(),
+            #nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
+            #nn.ReLU(),
             nn.Linear(self._config["hidden_dims"], 2*self._config["latent_dims"])
         )
         # decoder takes latent space + desired pose
@@ -62,8 +62,8 @@ class ConstrainedCVAE(nn.Module):
             nn.ReLU(),
             nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
             nn.ReLU(),
-            nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
-            nn.ReLU(),
+            #nn.Linear(self._config["hidden_dims"], self._config["hidden_dims"]),
+            #nn.ReLU(),
             nn.Linear(self._config["hidden_dims"], self._config["joint_dims"]),
             nn.Tanh()
         )
@@ -89,11 +89,10 @@ class ConstrainedCVAE(nn.Module):
         else:
             # if z is not provided, sample from standard normal
             if z == None:
-                z = torch.empty(self._config["latent_dims"]).normal_(mean=0, std=1)
-                # print("sampled z: ", z)
+                z = torch.empty((desired_pose.size()[0], self._config["latent_dims"])).normal_(mean=0, std=1)
             z = z.to(self.device)
             # run through decoder
-            output = self.decoder(torch.cat((z, desired_pose), axis=0))
+            output = self.decoder(torch.cat((z, desired_pose), axis=1))
             # scale the output to meet joint position constraints
             q = output*0.5*self._joint_position_range + self._joint_position_mean
             return q
@@ -102,7 +101,7 @@ class ConstrainedCVAE(nn.Module):
 # for testing purposes
 if __name__ == "__main__":
     device = torch.device("cpu")
-    model = CVAE().to(device)
+    model = ConstrainedCVAE().to(device)
     model.train()
     pose = torch.Tensor([1,2,3,4,5,6])
     config = torch.Tensor([11,12,13,14,15,16,17])
